@@ -13,8 +13,9 @@ type User struct {
 	ID 		 int 	`json:"id"`
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 	UUID 	 string `json:"uuid"`
+	Token	 string `json:"token"`
 }
 
 type Credentials struct {
@@ -78,9 +79,9 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	tokenMap := map[string]string{"token":tokenString}
+	user.Token = tokenString
 
-	throwStatusOk(tokenMap, c)
+	throwStatusOk(user, c)
 	return
 }
 
