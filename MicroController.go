@@ -90,3 +90,11 @@ func getMicroControllerByID(id int)(MicroController, error){
 	}
 	return microcontroller, nil
 }
+
+func getMicroControllerByUserID(id int)([]MicroController, error){
+	var microcontrollers []MicroController
+	if err := db.Raw("SELECT * FROM microcontrollers m JOIN users_microcontrollers um ON m.id = um.controller_id WHERE um.user_id =?", id).Scan(&microcontrollers).Error; err != nil {
+		return nil, err
+	}
+	return microcontrollers, nil
+}

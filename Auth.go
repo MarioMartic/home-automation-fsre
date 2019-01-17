@@ -4,7 +4,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"github.com/gin-gonic/gin"
 	"log"
-	"time"
 	"strings"
 	"errors"
 )
@@ -18,14 +17,26 @@ type User struct {
 	Token	 string `json:"token"`
 }
 
+type UserV2 struct {
+	ID 		 int 	`json:"id"`
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Password string `json:"-"`
+	UUID 	 string `json:"uuid"`
+	Token	 string `json:"token"`
+	MicrocontrollersCount int `json:"microcontrollers_count"`
+}
+
 type Credentials struct {
 	FullName string `json:"full_name"`
 	Email    string `json:"email",	db:"email"`
 	Password string `json:"password", db:"password"`
 }
 
-const SigningKey = "dfajlkfjqwopie"
-const UserJWTExpirationTime  = time.Hour * 24 * 7
+type UUID struct {
+	Text string `json:"uuid"`
+}
+
 
 func SignUp(c *gin.Context) {
 	user := &User{}
@@ -57,9 +68,9 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	user := User{}
+	user := UserV2{}
 
-	if err := db.Debug().Raw("select * from users where email=?", creds.Email).Scan(&user).Error; err != nil {
+	if err := db.Debug().Raw("select u.*, count(um.user_id) as microcontrollers_count from users u join users_microcontrollers um on um.user_id = u.id where u.email=?", creds.Email).Scan(&user).Error; err != nil {
 		log.Println(err, "useriimejl")
 		throwStatusUnauthorized(c)
 		return
@@ -105,5 +116,39 @@ func getTokenFromRequest(c *gin.Context) string {
 		return token
 	}
 	return ""
+}
+
+func addPrivilegesToUser(c *gin.Context) {
+	uuid := &UUID{}
+	if bindErr := c.BindJSON(&uuid); bindErr != nil {
+		log.Println(bindErr)
+		throwStatusBadRequest(bindErr.Error(), c)
+		return
+	}
+
+	user, err := getUserFromToken(getTokenFromRequest(c))
+	if err != nil {
+		log.Println(err)
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	controllers, err := getMicroControllerByUserID(user.ID)
+	if err != nil {
+		log.Println(err)
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	for _, controller := range controllers {
+		query := "INSERT INTO users_microcontrollers(user_id, controller_id) VALUES ((SELECT id FROM users WHERE uuid = ?), ?)"
+		if err := db.Exec(query, uuid.Text, controller.ID).Error; err != nil {
+			log.Println(err)
+			continue
+		}
+	}
+
+	throwStatusOk("OK", c )
+
 }
 
