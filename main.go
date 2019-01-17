@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+const ARDUINO_ADDRESS = "http://epcez.myddns.rocks:3000"
+
 func main() {
 
 	connectToDatabase()
@@ -29,6 +31,9 @@ func main() {
 	router.POST("/trigger/:id", triggerAction)
 
 	router.GET("/log")
+
+	router.GET("/state", getStates)
+	router.GET("/state/:id", getStateById)
 
 	logsApi := router.Group("/log")
 
@@ -69,7 +74,7 @@ func doEvery(d time.Duration, f func(time.Time)) {
 }
 
 func action(c *gin.Context) {
-	apiUrl := "http://epcez.myddns.rocks:3000"
+	apiUrl := ARDUINO_ADDRESS
 	fmt.Println("URL:>", apiUrl)
 
 	data := url.Values{}
