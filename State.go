@@ -23,6 +23,8 @@ func getStates(c *gin.Context) {
 		os.Exit(1)
 	}
 
+	req.Header.Add("Authorization", "059b9576-89ea-468e-81fb-564d1331055c")
+
 	q := req.URL.Query()
 	q.Add("pin", "0")
 	req.URL.RawQuery = q.Encode()
@@ -79,6 +81,9 @@ func getStateById(c *gin.Context){
 		os.Exit(1)
 	}
 
+	req.Header.Add("Authorization", "059b9576-89ea-468e-81fb-564d1331055c")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
 	q := req.URL.Query()
 	q.Add("pin", strconv.Itoa(action.Pin))
 	req.URL.RawQuery = q.Encode()
@@ -93,13 +98,13 @@ func getStateById(c *gin.Context){
 	}
 	defer resp.Body.Close()
 
-	var s []State
+	var s State
 	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
 		log.Println(err.Error())
 		throwStatusInternalServerError(err.Error(), c)
 		return
 	}
-
+	s.Pin = strconv.Itoa(action.Pin)
 	c.JSON(200, s)
 
 }
