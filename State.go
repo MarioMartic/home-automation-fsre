@@ -27,6 +27,8 @@ func getStates(c *gin.Context) {
 	q.Add("pin", "0")
 	req.URL.RawQuery = q.Encode()
 
+
+
 	fmt.Println(req.URL.String())
 
 	resp, err := client.Do(req)
@@ -61,6 +63,14 @@ func getStateById(c *gin.Context){
 		throwStatusUnauthorized(c)
 		return
 	}
+	var action Action
+
+	errr := db.Debug().Raw("SELECT * FROM actions WHERE id = ?", id).Scan(&action).Error
+	if errr != nil {
+		log.Println(errr.Error())
+		throwStatusUnauthorized(c)
+		return
+	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ARDUINO_ADDRESS, nil)
@@ -70,7 +80,7 @@ func getStateById(c *gin.Context){
 	}
 
 	q := req.URL.Query()
-	q.Add("pin", strconv.Itoa(id))
+	q.Add("pin", strconv.Itoa(action.ID))
 	req.URL.RawQuery = q.Encode()
 
 	fmt.Println(req.URL.String())
