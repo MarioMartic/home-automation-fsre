@@ -80,7 +80,7 @@ func getStateById(c *gin.Context){
 	}
 
 	q := req.URL.Query()
-	q.Add("pin", strconv.Itoa(action.ID))
+	q.Add("pin", strconv.Itoa(action.Pin))
 	req.URL.RawQuery = q.Encode()
 
 	fmt.Println(req.URL.String())
