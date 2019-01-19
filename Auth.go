@@ -192,7 +192,7 @@ func deletePrivilegesToUser(c *gin.Context) {
 	for _, controller := range controllers {
 		query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
 		print(query)
-		if err := db.Exec(query, id, controller.ID).Error; err != nil {
+		if err := db.Exec(query, id.id, controller.ID).Error; err != nil {
 			log.Println(err)
 			continue
 		}
