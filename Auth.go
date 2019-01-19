@@ -70,7 +70,7 @@ func SignIn(c *gin.Context) {
 
 	user := UserV2{}
 
-	if err := db.Debug().Raw("select u.*, count(um.user_id) as microcontrollers_count from users u join users_microcontrollers um on um.user_id = u.id where u.email=? GROUP BY u.id", creds.Email).Scan(&user).Error; err != nil {
+	if err := db.Debug().Raw("select u.*, count(um.user_id) as microcontrollers_count from users u left join users_microcontrollers um on um.user_id = u.id where u.email=? GROUP BY u.id", creds.Email).Scan(&user).Error; err != nil {
 		log.Println(err, "useriimejl")
 		throwStatusUnauthorized(c)
 		return
