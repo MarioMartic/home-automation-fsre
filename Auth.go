@@ -37,6 +37,10 @@ type UUID struct {
 	Text string `json:"uuid"`
 }
 
+type UserID struct {
+	id int `json:"id"`
+}
+
 
 func SignUp(c *gin.Context) {
 	user := &User{}
@@ -156,6 +160,48 @@ func addPrivilegesToUser(c *gin.Context) {
 
 }
 
+func deletePrivilegesToUser(c *gin.Context) {
+	id := &UserID{}
+	if bindErr := c.BindJSON(&id); bindErr != nil {
+		log.Println(bindErr)
+		throwStatusBadRequest(bindErr.Error(), c)
+		return
+	}
+	log.Println(id)
+
+	user, err := getUserFromToken(getTokenFromRequest(c))
+	if err != nil {
+		log.Println(err)
+		throwStatusUnauthorized(c)
+		return
+	}
+	log.Println(user)
+
+	if(id.id == user.ID){
+		throwStatusBadRequest("Can't delete yourself", c)
+	}
+
+	controllers, err := getMicroControllerByUserID(user.ID)
+	if err != nil {
+		log.Println(err)
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+
+	for _, controller := range controllers {
+		query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
+		print(query)
+		if err := db.Exec(query, id, controller.ID).Error; err != nil {
+			log.Println(err)
+			continue
+		}
+	}
+
+	throwStatusOk("OK", c )
+
+}
+
 func getConnectedUsers(c *gin.Context) {
 	creds, err := getUserFromToken(getTokenFromRequest(c))
 	if err != nil {
@@ -178,6 +224,8 @@ func getConnectedUsers(c *gin.Context) {
 	return
 
 }
+
+
 
 func AdminMiddlerware(c *gin.Context){
 	if true {
