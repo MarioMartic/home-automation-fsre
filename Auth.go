@@ -9,12 +9,12 @@ import (
 )
 
 type User struct {
-	ID 		 int 	`json:"id"`
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
-	Password string `json:"-"`
-	UUID 	 string `json:"uuid"`
-	Token	 string `json:"token"`
+	ID 		 	int 	`json:"id"`
+	FullName 	string `json:"full_name"`
+	Email    	string `json:"email"`
+	Password 	string `json:"-"`
+	UUID 	 	string `json:"uuid"`
+	LoginToken	string `json:"login_token"`
 }
 
 type UserV2 struct {
