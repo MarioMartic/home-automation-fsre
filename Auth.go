@@ -12,7 +12,7 @@ type User struct {
 	ID 		 	int 	`json:"id"`
 	FullName 	string `json:"full_name"`
 	Email    	string `json:"email"`
-	Password 	string `json:"-"`
+	Password 	string `json:"password"`
 	UUID 	 	string `json:"uuid"`
 	LoginToken	string `json:"login_token"`
 }
@@ -75,6 +75,8 @@ func SignIn(c *gin.Context) {
 		throwStatusUnauthorized(c)
 		return
 	}
+
+	log.Println(user)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
 		log.Println(err.Error(), "userpasvord")
