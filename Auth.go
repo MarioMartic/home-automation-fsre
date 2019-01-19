@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"errors"
+	"strconv"
 )
 
 type User struct {
@@ -38,7 +39,7 @@ type UUID struct {
 }
 
 type UserID struct {
-	id int `json:"id"`
+	Text string `json:"id"`
 }
 
 
@@ -161,13 +162,13 @@ func addPrivilegesToUser(c *gin.Context) {
 }
 
 func deletePrivilegesToUser(c *gin.Context) {
-	id := &UserID{}
-	if bindErr := c.BindJSON(&id); bindErr != nil {
+	var userId = UserID{}
+	if bindErr := c.BindJSON(&userId); bindErr != nil {
 		log.Println(bindErr)
 		throwStatusBadRequest(bindErr.Error(), c)
 		return
 	}
-	log.Println(id)
+	log.Println(userId)
 
 	user, err := getUserFromToken(getTokenFromRequest(c))
 	if err != nil {
@@ -177,7 +178,7 @@ func deletePrivilegesToUser(c *gin.Context) {
 	}
 	log.Println(user)
 
-	if(id.id == user.ID){
+	if(strings.Compare(userId.Text, strconv.Itoa(user.ID)) == 0){
 		throwStatusBadRequest("Can't delete yourself", c)
 	}
 
@@ -191,10 +192,10 @@ func deletePrivilegesToUser(c *gin.Context) {
 
 	for _, controller := range controllers {
 		query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
-		print(query)
-		if err := db.Exec(query, id.id, controller.ID).Error; err != nil {
+		print(query, userId.Text, controller.ID)
+		if err := db.Debug().Exec(query, userId.Text, controller.ID).Error; err != nil {
 			log.Println(err)
-			continue
+			throwStatusInternalServerError("Error while deleting", c)
 		}
 	}
 
