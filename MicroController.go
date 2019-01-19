@@ -3,17 +3,18 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"log"
 )
 
 type MicroController struct {
-	ID	int `json:"id"`
-	Name string `json:"name"`
-	Token string `json:"token"`
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Token  string `json:"token"`
 	Domain string `json:"domain"`
-	Port int `json:"port"`
+	Port   int    `json:"port"`
 }
 
-func AdminGetMicroControllers(c *gin.Context){
+func AdminGetMicroControllers(c *gin.Context) {
 	var microcontrollers []MicroController
 	if err := db.Raw("SELECT * FROM microcontrollers").Scan(&microcontrollers).Error; err != nil {
 		throwStatusInternalServerError(err.Error(), c)
@@ -23,7 +24,7 @@ func AdminGetMicroControllers(c *gin.Context){
 	return
 }
 
-func AdminGetMicroControllerByID(c *gin.Context){
+func AdminGetMicroControllerByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		throwStatusInternalServerError(err.Error(), c)
@@ -40,7 +41,7 @@ func AdminGetMicroControllerByID(c *gin.Context){
 	return
 }
 
-func AdminUpdateMicroControllerByID(c *gin.Context){
+func AdminUpdateMicroControllerByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		throwStatusInternalServerError(err.Error(), c)
@@ -50,6 +51,11 @@ func AdminUpdateMicroControllerByID(c *gin.Context){
 	microcontroller, err := getMicroControllerByID(id)
 	if err != nil {
 		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	if err := c.BindJSON(&microcontroller); err != nil {
+		log.Println(err)
 		return
 	}
 
@@ -61,7 +67,7 @@ func AdminUpdateMicroControllerByID(c *gin.Context){
 	return
 }
 
-func AdminDeleteMicroControllerByID(c *gin.Context){
+func AdminDeleteMicroControllerByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		throwStatusInternalServerError(err.Error(), c)
@@ -82,8 +88,23 @@ func AdminDeleteMicroControllerByID(c *gin.Context){
 	return
 }
 
+func AdminCreateMicroController(c *gin.Context) {
+	var controller MicroController
+	if err := c.BindJSON(&controller); err != nil {
+		log.Println(err)
+		return
+	}
 
-func getMicroControllerByID(id int)(MicroController, error){
+	if err := db.Create(&controller); err != nil {
+		log.Println(err)
+		return
+	}
+
+	c.JSON(200, controller)
+
+}
+
+func getMicroControllerByID(id int) (MicroController, error) {
 	var microcontroller MicroController
 	if err := db.Raw("SELECT * FROM microcontrollers WHERE id =?", id).Scan(&microcontroller).Error; err != nil {
 		return MicroController{}, err
@@ -91,7 +112,7 @@ func getMicroControllerByID(id int)(MicroController, error){
 	return microcontroller, nil
 }
 
-func getMicroControllerByUserID(id int)([]MicroController, error){
+func getMicroControllerByUserID(id int) ([]MicroController, error) {
 	var microcontrollers []MicroController
 	if err := db.Raw("SELECT * FROM microcontrollers m JOIN users_microcontrollers um ON m.id = um.controller_id WHERE um.user_id =?", id).Scan(&microcontrollers).Error; err != nil {
 		return nil, err

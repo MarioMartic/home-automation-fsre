@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-const ARDUINO_ADDRESS = "http://epcez.myddns.rocks:3000"
+const ARDUINO_ADDRESS = "http://192.168.1.117:3000"
 
 func main() {
 
@@ -41,6 +41,32 @@ func main() {
 	logsApi.GET("/user", getLogsForUser)
 	logsApi.GET("/action/:id", getLogsForAction)
 
+	adminApi := router.Group("/admin")
+	{
+		controllerApi := adminApi.Group("/controllers")
+		{
+			controllerApi.POST("/", AdminCreateMicroController)
+			controllerApi.GET("/", AdminGetMicroControllers)
+			controllerApi.GET("/:id", AdminGetMicroControllerByID)
+			controllerApi.PUT("/:id", AdminUpdateMicroControllerByID)
+			controllerApi.DELETE("/:id", AdminDeleteMicroControllerByID)
+		}
+
+		userApi := adminApi.Group("/users")
+		{
+			userApi.POST("/", AdminCreateUser)
+			userApi.GET("/", AdminGetUsers)
+			userApi.GET("/:id", AdminGetUser)
+			userApi.PUT("/:id", AdminUpdateUser)
+			userApi.DELETE("/:id", AdminDeleteUser)
+		}
+
+		logsAdminApi := adminApi.Group("/logs")
+		{
+			logsAdminApi.GET("/", AdminGetLogs)
+			logsAdminApi.DELETE("/:id", AdminDeleteLog)
+		}
+	}
 
 	router.Run(":8080")
 

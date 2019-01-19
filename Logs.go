@@ -71,3 +71,41 @@ func logData(user User, action Action) error {
 	}
 	return nil
 }
+
+func AdminGetLogs(c *gin.Context){
+	var logs []Log
+	if err := db.Raw("SELECT * FROM logs").Scan(&logs).Error; err != nil {
+		log.Println(err)
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	throwStatusOk(logs, c)
+	return
+}
+
+func AdminDeleteLog(c *gin.Context){
+	var logData Log
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Println(err)
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	if err := db.Raw("SELECT * FROM logs WHERE id = ?", id).Scan(&logData).Error; err != nil {
+		log.Println(err)
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	if err := db.Where("id = ?", id).Delete(&logData).Error; err != nil {
+		log.Println(err)
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	throwStatusOk(logData, c)
+	return
+}

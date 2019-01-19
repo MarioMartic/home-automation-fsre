@@ -13,7 +13,7 @@ var db *gorm.DB
 var dbErr error
 
 func connectToDatabase() {
-	time.Sleep(30 * time.Second)
+	time.Sleep(15 * time.Second)
 	db, dbErr = gorm.Open("mysql", "root:mario123@/home_automation?charset=utf8&parseTime=True&loc=Local")
 
 	if dbErr != nil {
