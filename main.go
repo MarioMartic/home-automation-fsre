@@ -27,6 +27,7 @@ func main() {
 	router.POST("/signin", SignIn)
 	router.POST("/signup", SignUp)
 	router.POST("/invite", addPrivilegesToUser)
+	router.GET("/user/connected", getConnectedUsers)
 
 	router.GET("/action", getActionsForUser)
 	router.POST("/trigger/:id", triggerAction)

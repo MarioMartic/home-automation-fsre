@@ -21,7 +21,7 @@ type UserV2 struct {
 	ID 		 int 	`json:"id"`
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 	UUID 	 string `json:"uuid"`
 	Token	 string `json:"token"`
 	MicrocontrollersCount int `json:"microcontrollers_count"`
@@ -143,6 +143,7 @@ func addPrivilegesToUser(c *gin.Context) {
 		return
 	}
 
+
 	for _, controller := range controllers {
 		query := "INSERT INTO users_microcontrollers(user_id, controller_id) VALUES ((SELECT id FROM users WHERE uuid = ?), ?)"
 		if err := db.Exec(query, uuid.Text, controller.ID).Error; err != nil {
@@ -155,3 +156,33 @@ func addPrivilegesToUser(c *gin.Context) {
 
 }
 
+func getConnectedUsers(c *gin.Context) {
+	creds, err := getUserFromToken(getTokenFromRequest(c))
+	if err != nil {
+		log.Println(err)
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	var users []UserV2
+
+	query := "select u.* from users u left join users_microcontrollers um on um.user_id = u.id where um.controller_id IN (select controller_id from users_microcontrollers where user_id = ?) GROUP BY u.id"
+
+	if err := db.Debug().Raw(query, creds.ID).Scan(&users).Error; err != nil {
+		log.Println(err, "useriimejl")
+		throwStatusUnauthorized(c)
+		return
+	}
+	print(users)
+	throwStatusOk(users, c)
+	return
+
+}
+
+func AdminMiddlerware(c *gin.Context){
+	if true {
+		c.Next()
+	}else {
+		throwStatusUnauthorized(c)
+	}
+}
