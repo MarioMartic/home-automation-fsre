@@ -21,7 +21,7 @@ type UserV2 struct {
 	ID 		 int 	`json:"id"`
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
-	Password string `json:"-"`
+	Password string `json:"password"`
 	UUID 	 string `json:"uuid"`
 	Token	 string `json:"token"`
 	MicrocontrollersCount int `json:"microcontrollers_count"`
@@ -90,6 +90,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
+	user.Password = ""
 	user.Token = tokenString
 
 	throwStatusOk(user, c)
