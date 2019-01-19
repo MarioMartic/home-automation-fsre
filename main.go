@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-const ARDUINO_ADDRESS = "http://192.168.1.117:3000"
+const ARDUINO_ADDRESS = "http://epcez.myddns.rocks:3000"
 
 func main() {
 
