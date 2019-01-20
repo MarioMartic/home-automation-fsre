@@ -43,8 +43,11 @@ func main() {
 	logsApi.GET("/user", getLogsForUser)
 	logsApi.GET("/action/:id", getLogsForAction)
 
-	adminApi := router.Group("/admin")
+	router.POST("/admin/signin", AdminSignIn)
+
+	adminApi := router.Group("/admin", AdminMiddleware)
 	{
+
 		controllerApi := adminApi.Group("/controllers")
 		{
 			controllerApi.POST("/", AdminCreateMicroController)

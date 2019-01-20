@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"log"
+	"net/url"
+	"net/http"
 )
 
 type MicroController struct {
@@ -59,6 +61,12 @@ func AdminUpdateMicroControllerByID(c *gin.Context) {
 		return
 	}
 
+	validationErrors := microcontroller.validate()
+	if len(validationErrors) > 0 {
+		c.JSON(http.StatusBadRequest, validationErrors)
+		return
+	}
+
 	if err := db.Exec("UPDATE microcontollers SET name=?, token=?, domain=?, port=? WHERE id =?", microcontroller.Name, microcontroller.Token, microcontroller.Domain, microcontroller.Port, id).Error; err != nil {
 		throwStatusInternalServerError(err.Error(), c)
 		return
@@ -95,6 +103,18 @@ func AdminCreateMicroController(c *gin.Context) {
 		return
 	}
 
+	count := db.Raw("SELECT * FROM microcontrollers WHERE domain = ? AND port = ?", controller.Domain, controller.Port).RowsAffected
+
+	if count != 0 {
+		throwStatusBadRequest("Controller already exists", c)
+	}
+
+	validationErrors := controller.validate()
+	if len(validationErrors) > 0 {
+		c.JSON(http.StatusBadRequest, validationErrors)
+		return
+	}
+
 	if err := db.Create(&controller); err != nil {
 		log.Println(err)
 		return
@@ -102,6 +122,24 @@ func AdminCreateMicroController(c *gin.Context) {
 
 	c.JSON(200, controller)
 
+}
+
+func (m *MicroController) validate() url.Values {
+	errs := url.Values{}
+
+	if m.Token == "" {
+		errs.Add("token", "Token is required!")
+	}
+
+	if m.Port == 0 || m.Port < 1000 || m.Port > 15000 {
+		errs.Add("port", "Invalid port number!")
+	}
+
+	if m.Domain == ""  {
+		errs.Add("domain", "Domain is required!")
+	}
+
+	return errs
 }
 
 func getMicroControllerByID(id int) (MicroController, error) {

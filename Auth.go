@@ -10,22 +10,29 @@ import (
 )
 
 type User struct {
-	ID 		 	int 	`json:"id"`
-	FullName 	string `json:"full_name"`
-	Email    	string `json:"email"`
-	Password 	string `json:"password"`
-	UUID 	 	string `json:"uuid"`
-	LoginToken	string `json:"login_token"`
+	ID         int    `json:"id"`
+	FullName   string `json:"full_name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	UUID       string `json:"uuid"`
+	LoginToken string `json:"login_token"`
+}
+type Admin struct {
+	ID         int    `json:"id"`
+	FullName   string `json:"full_name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	LoginToken string `json:"login_token"`
 }
 
 type UserV2 struct {
-	ID 		 int 	`json:"id"`
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
-	Password string `json:"-"`
-	UUID 	 string `json:"uuid"`
-	Token	 string `json:"token"`
-	MicrocontrollersCount int `json:"microcontrollers_count"`
+	ID                    int    `json:"id"`
+	FullName              string `json:"full_name"`
+	Email                 string `json:"email"`
+	Password              string `json:"-"`
+	UUID                  string `json:"uuid"`
+	Token                 string `json:"token"`
+	MicrocontrollersCount int    `json:"microcontrollers_count"`
 }
 
 type Credentials struct {
@@ -41,7 +48,6 @@ type UUID struct {
 type UserID struct {
 	Text string `json:"id"`
 }
-
 
 func SignUp(c *gin.Context) {
 	user := &User{}
@@ -104,7 +110,7 @@ func SignIn(c *gin.Context) {
 	return
 }
 
-func getUserFromToken(token string) (User, error){
+func getUserFromToken(token string) (User, error) {
 	var user User
 
 	query := `SELECT * FROM users WHERE login_token = ?`
@@ -118,7 +124,7 @@ func getUserFromToken(token string) (User, error){
 
 func getTokenFromRequest(c *gin.Context) string {
 	token := c.Request.Header.Get("Authorization")
-	if len(token)>0{
+	if len(token) > 0 {
 		token = strings.TrimPrefix(token, "Bearer ")
 		log.Println("TOKEN: ", token)
 		return token
@@ -148,7 +154,6 @@ func addPrivilegesToUser(c *gin.Context) {
 		return
 	}
 
-
 	for _, controller := range controllers {
 		query := "INSERT INTO users_microcontrollers(user_id, controller_id) VALUES ((SELECT id FROM users WHERE uuid = ?), ?)"
 		if err := db.Exec(query, uuid.Text, controller.ID).Error; err != nil {
@@ -157,7 +162,7 @@ func addPrivilegesToUser(c *gin.Context) {
 		}
 	}
 
-	throwStatusOk("OK", c )
+	throwStatusOk("OK", c)
 
 }
 
@@ -178,16 +183,15 @@ func deletePrivilegesToUser(c *gin.Context) {
 	}
 	log.Println(user)
 
-	if(strings.Compare(userId.Text, strconv.Itoa(user.ID)) == 0){
+	if (strings.Compare(userId.Text, strconv.Itoa(user.ID)) == 0) {
 		throwStatusBadRequest("Can't delete yourself", c)
-	}else{
+	} else {
 		controllers, err := getMicroControllerByUserID(user.ID)
 		if err != nil {
 			log.Println(err)
 			throwStatusInternalServerError(err.Error(), c)
 			return
 		}
-
 
 		for _, controller := range controllers {
 			query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
@@ -197,7 +201,7 @@ func deletePrivilegesToUser(c *gin.Context) {
 				throwStatusInternalServerError("Error while deleting", c)
 			}
 		}
-		throwStatusOk("OK", c )
+		throwStatusOk("OK", c)
 	}
 }
 
@@ -224,12 +228,64 @@ func getConnectedUsers(c *gin.Context) {
 
 }
 
+func getAdminFromToken(token string) (Admin, error) {
+	var admin Admin
 
+	query := `SELECT * FROM admins WHERE login_token = ?`
 
-func AdminMiddlerware(c *gin.Context){
-	if true {
-		c.Next()
-	}else {
-		throwStatusUnauthorized(c)
+	count := db.Debug().Raw(query, token).Scan(&admin).RowsAffected
+	if count == 0 {
+		return Admin{}, errors.New("DB_ERR")
 	}
+	return admin, nil
 }
+
+func AdminMiddleware(c *gin.Context) {
+	_, err := getAdminFromToken(getTokenFromRequest(c))
+	if err != nil {
+		log.Println(err)
+		throwStatusUnauthorized(c)
+		return
+	}
+	c.Next()
+}
+
+func AdminSignIn(c *gin.Context) {
+	creds := &Credentials{}
+	if bindErr := c.BindJSON(&creds); bindErr != nil {
+		log.Println(bindErr)
+		throwStatusBadRequest(bindErr.Error(), c)
+		return
+	}
+
+	admin := Admin{}
+
+	if err := db.Debug().Raw("select * from admins where email = ?", creds.Email).Scan(&admin).Error; err != nil {
+		log.Println(err, "useriimejl")
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	log.Println(admin)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(creds.Password)); err != nil {
+		log.Println(err.Error(), "userpasvord")
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	tokenString := generateToken(64)
+
+	if err := db.Exec("UPDATE admins SET login_token = ? WHERE id =?", tokenString, admin.ID).Error; err != nil {
+		log.Println(err)
+		throwStatusInternalServerError("DB_ERR", c)
+		return
+	}
+
+	admin.Password = ""
+	admin.LoginToken = tokenString
+
+	throwStatusOk(admin, c)
+	return
+}
+
