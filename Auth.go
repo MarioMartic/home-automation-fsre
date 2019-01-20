@@ -180,27 +180,25 @@ func deletePrivilegesToUser(c *gin.Context) {
 
 	if(strings.Compare(userId.Text, strconv.Itoa(user.ID)) == 0){
 		throwStatusBadRequest("Can't delete yourself", c)
-	}
-
-	controllers, err := getMicroControllerByUserID(user.ID)
-	if err != nil {
-		log.Println(err)
-		throwStatusInternalServerError(err.Error(), c)
-		return
-	}
-
-
-	for _, controller := range controllers {
-		query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
-		print(query, userId.Text, controller.ID)
-		if err := db.Debug().Exec(query, userId.Text, controller.ID).Error; err != nil {
+	}else{
+		controllers, err := getMicroControllerByUserID(user.ID)
+		if err != nil {
 			log.Println(err)
-			throwStatusInternalServerError("Error while deleting", c)
+			throwStatusInternalServerError(err.Error(), c)
+			return
 		}
+
+
+		for _, controller := range controllers {
+			query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
+			print(query, userId.Text, controller.ID)
+			if err := db.Debug().Exec(query, userId.Text, controller.ID).Error; err != nil {
+				log.Println(err)
+				throwStatusInternalServerError("Error while deleting", c)
+			}
+		}
+		throwStatusOk("OK", c )
 	}
-
-	throwStatusOk("OK", c )
-
 }
 
 func getConnectedUsers(c *gin.Context) {
