@@ -16,6 +16,11 @@ type MicroController struct {
 	Port   int    `json:"port"`
 }
 
+type UM struct {
+	UserID int `json:"user_id"`
+	ControllerID int `json:"controller_id"`
+}
+
 func AdminGetMicroControllers(c *gin.Context) {
 	var microcontrollers []MicroController
 	if err := db.Raw("SELECT * FROM microcontrollers").Scan(&microcontrollers).Error; err != nil {
@@ -156,4 +161,29 @@ func getMicroControllerByUserID(id int) ([]MicroController, error) {
 		return nil, err
 	}
 	return microcontrollers, nil
+}
+
+func bindUserWithController(c *gin.Context) {
+	var um UM
+
+	if um.UserID == 0 || um.ControllerID == 0 {
+		throwStatusBadRequest("Nemoj nula", c)
+		return
+	}
+
+	if err := c.BindJSON(&um); err != nil {
+		log.Println(err)
+		return
+	}
+
+	query := "INSERT INTO users_microcontrollers (user_id, controller_id) VALUES (?, ?)"
+
+
+	if err := db.Exec(query, um.UserID, um.ControllerID).Error; err != nil {
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	throwStatusOk("OK", c)
+
 }

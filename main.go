@@ -55,6 +55,7 @@ func main() {
 			controllerApi.GET("/:id", AdminGetMicroControllerByID)
 			controllerApi.PUT("/:id", AdminUpdateMicroControllerByID)
 			controllerApi.DELETE("/:id", AdminDeleteMicroControllerByID)
+			controllerApi.POST("/bind", bindUserWithController)
 		}
 
 		userApi := adminApi.Group("/users")
@@ -64,6 +65,15 @@ func main() {
 			userApi.GET("/:id", AdminGetUser)
 			userApi.PUT("/:id", AdminUpdateUser)
 			userApi.DELETE("/:id", AdminDeleteUser)
+		}
+
+		actionApi := adminApi.Group("/actions")
+		{
+			actionApi.POST("/", AdminCreateAction)
+			actionApi.GET("/", AdminGetActions)
+			actionApi.GET("/:id", AdminGetAction)
+			actionApi.PUT("/:id", AdminUpdateAction)
+			actionApi.DELETE("/:id", AdminDeleteAction)
 		}
 
 		logsAdminApi := adminApi.Group("/logs")
