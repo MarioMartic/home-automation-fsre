@@ -8,9 +8,11 @@ import (
 	"net/url"
 	"strings"
 	"strconv"
+	"github.com/rs/cors"
 )
 
 const ARDUINO_ADDRESS = "http://epcez.myddns.rocks:3000"
+var handler http.Handler
 
 func main() {
 
@@ -18,6 +20,8 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
+
+	handler = cors.AllowAll().Handler(router)
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "HI")

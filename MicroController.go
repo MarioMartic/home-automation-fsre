@@ -16,6 +16,10 @@ type MicroController struct {
 	Port   int    `json:"port"`
 }
 
+func (MicroController) TableName() string {
+	return "microcontrollers"
+}
+
 type UM struct {
 	UserID int `json:"user_id"`
 	ControllerID int `json:"controller_id"`
@@ -72,7 +76,7 @@ func AdminUpdateMicroControllerByID(c *gin.Context) {
 		return
 	}
 
-	if err := db.Exec("UPDATE microcontollers SET name=?, token=?, domain=?, port=? WHERE id =?", microcontroller.Name, microcontroller.Token, microcontroller.Domain, microcontroller.Port, id).Error; err != nil {
+	if err := db.Exec("UPDATE microcontrollers SET name=?, token=?, domain=?, port=? WHERE id =?", microcontroller.Name, microcontroller.Token, microcontroller.Domain, microcontroller.Port, id).Error; err != nil {
 		throwStatusInternalServerError(err.Error(), c)
 		return
 	}
@@ -93,7 +97,7 @@ func AdminDeleteMicroControllerByID(c *gin.Context) {
 		return
 	}
 
-	if err := db.Exec("DELETE FROM microcontollers WHERE id =?", microcontroller.ID).Error; err != nil {
+	if err := db.Exec("DELETE FROM microcontrollers WHERE id =?", microcontroller.ID).Error; err != nil {
 		throwStatusInternalServerError(err.Error(), c)
 		return
 	}
@@ -112,6 +116,7 @@ func AdminCreateMicroController(c *gin.Context) {
 
 	if count != 0 {
 		throwStatusBadRequest("Controller already exists", c)
+		return
 	}
 
 	validationErrors := controller.validate()
@@ -120,13 +125,15 @@ func AdminCreateMicroController(c *gin.Context) {
 		return
 	}
 
-	if err := db.Create(&controller); err != nil {
+
+	if err := db.Debug().Exec(" INSERT INTO `microcontrollers` (`name`,`token`,`domain`,`port`) " +
+		"VALUES (?,?,?,?)", controller.Name, controller.Token, controller.Domain, controller.Port); err != nil {
 		log.Println(err)
 		return
 	}
 
-	c.JSON(200, controller)
-
+	throwStatusOk(controller, c)
+	return
 }
 
 func (m *MicroController) validate() url.Values {
@@ -142,6 +149,10 @@ func (m *MicroController) validate() url.Values {
 
 	if m.Domain == ""  {
 		errs.Add("domain", "Domain is required!")
+	}
+
+	if m.Name == "" {
+		errs.Add("name", "Name is required!")
 	}
 
 	return errs
