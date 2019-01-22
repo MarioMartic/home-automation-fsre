@@ -124,9 +124,5 @@ func (a *Action) validate() url.Values {
 		errs.Add("name", "Action name is required!")
 	}
 
-	if a.Type == 0 {
-		errs.Add("type", "Action type is required!")
-	}
-
 	return errs
 }
