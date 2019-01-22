@@ -177,13 +177,14 @@ func getMicroControllerByUserID(id int) ([]MicroController, error) {
 func bindUserWithController(c *gin.Context) {
 	var um UM
 
-	if um.UserID == 0 || um.ControllerID == 0 {
-		throwStatusBadRequest("Nemoj nula", c)
-		return
-	}
 
 	if err := c.BindJSON(&um); err != nil {
 		log.Println(err)
+		return
+	}
+
+	if um.UserID == 0 || um.ControllerID == 0 {
+		throwStatusBadRequest("Nemoj nula", c)
 		return
 	}
 

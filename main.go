@@ -23,9 +23,7 @@ func main() {
 
 	handler = cors.AllowAll().Handler(router)
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "HI")
-	})
+	
 	router.POST("/keep-alive", keepAliveHandler)
 
 	router.POST("/signin", SignIn)
@@ -51,6 +49,10 @@ func main() {
 
 	adminApi := router.Group("/admin", AdminMiddleware)
 	{
+
+		adminApi.GET("/", func(c *gin.Context) {
+			c.JSON(http.StatusOK, "HI")
+		})
 
 		controllerApi := adminApi.Group("/controllers")
 		{
