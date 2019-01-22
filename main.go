@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"strconv"
-	"github.com/rs/cors"
+	"github.com/gin-contrib/cors"
 )
 
 const ARDUINO_ADDRESS = "http://epcez.myddns.rocks:3000"
@@ -20,6 +20,10 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
+
+	router.Use(cors.Default())
+
+	/*
 	router.Use(func(c *gin.Context) {
 			// Run this on all requests   
 			// Should be moved to a proper middleware 
@@ -30,7 +34,7 @@ func main() {
 
 	router.OPTIONS("/*cors", func(c *gin.Context) {
 		// Empty 200 response
-	})
+	}) */
 
 	
 	router.POST("/keep-alive", keepAliveHandler)
