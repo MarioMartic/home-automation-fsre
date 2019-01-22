@@ -21,7 +21,12 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 
-	router.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = []string{"Authorization", "Content-Type"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+
+	router.Use(cors.New(config))
 
 	/*
 	router.Use(func(c *gin.Context) {
