@@ -20,7 +20,7 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	router.use(CORSMiddleware)
+	router.use(CORSMiddleware())
 
 	
 	router.POST("/keep-alive", keepAliveHandler)
