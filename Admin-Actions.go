@@ -68,6 +68,14 @@ func AdminCreateAction(c *gin.Context) {
 		return
 	}
 
+	query := "SELECT * FROM actions WHERE controller_id = ? AND pin = ?"
+	count := db.Debug().Raw(query).RowsAffected
+
+	if count != 0 {
+		throwStatusBadRequest("ERR_PIN_DUPLICATION", c)
+		return
+	}
+
 	validationErrors := action.validate()
 	if len(validationErrors) > 0 {
 		c.JSON(http.StatusBadRequest, validationErrors)
