@@ -91,6 +91,10 @@ func main() {
 			userApi.DELETE("/:id", AdminDeleteUser)
 		}
 
+		adminApi.GET("/user-microcontrollers", AdminUserMicrocontrollers)
+		adminApi.GET("/users-microcontrollers", AdminUsersMicrocontrollers)
+
+
 		actionApi := adminApi.Group("/actions")
 		{
 			actionApi.POST("/", AdminCreateAction)
