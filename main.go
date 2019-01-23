@@ -80,6 +80,8 @@ func main() {
 			controllerApi.PUT("/:id", AdminUpdateMicroControllerByID)
 			controllerApi.DELETE("/:id", AdminDeleteMicroControllerByID)
 			controllerApi.POST("/bind", bindUserWithController)
+			controllerApi.POST("/unbind", unbindUserWithController)
+
 		}
 
 		userApi := adminApi.Group("/users")
@@ -93,7 +95,6 @@ func main() {
 
 		adminApi.GET("/user-microcontrollers", AdminUserMicrocontrollers)
 		adminApi.GET("/users-microcontrollers", AdminUsersMicrocontrollers)
-
 
 		actionApi := adminApi.Group("/actions")
 		{

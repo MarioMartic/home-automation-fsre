@@ -199,3 +199,27 @@ func bindUserWithController(c *gin.Context) {
 	throwStatusOk("OK", c)
 
 }
+
+func unbindUserWithController(c *gin.Context) {
+	var um UM
+	if err := c.BindJSON(&um); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if um.UserID == 0 || um.ControllerID == 0 {
+		throwStatusBadRequest("Nemoj nula", c)
+		return
+	}
+
+	query := "DELETE FROM users_microcontrollers WHERE user_id = ? AND controller_id = ?"
+
+	if err := db.Exec(query, um.UserID, um.ControllerID).Error; err != nil {
+		throwStatusInternalServerError(err.Error(), c)
+		return
+	}
+
+	throwStatusOk("OK", c)
+
+}
+
