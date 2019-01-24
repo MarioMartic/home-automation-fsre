@@ -76,10 +76,10 @@ func AdminUpdateMicroControllerByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
-
+	var c []MicroController
 	query := "SELECT * FROM microcontrollers WHERE domain = ? AND port = ? AND id != ?"
 
-	count := db.Raw(query, microcontroller.Domain, microcontroller.Port, microcontroller.ID).RowsAffected
+	count := db.Raw(query, microcontroller.Domain, microcontroller.Port, microcontroller.ID).Scan(&c).RowsAffected
 
 	if count != 0 {
 		throwStatusBadRequest("ERR_DOMAIN_PORT_DUPLICATION", c)
