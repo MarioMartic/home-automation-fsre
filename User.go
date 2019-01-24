@@ -102,7 +102,7 @@ func AdminUserMicrocontrollers(c *gin.Context) {
 	for index, user := range users {
 		for _, controller := range controllers {
 			if user.ID == controller.UserID {
-				c := MicroController{controller.ID, controller.Name, controller.Token, controller.Domain, controller.Port}
+				c := MicroController{controller.ID, controller.Name, controller.Token, controller.Domain, controller.Port, controller.NumOfPins}
 				users[index].Microcontrollers = append(users[index].Microcontrollers, c)
 			}
 		}
