@@ -136,7 +136,7 @@ func AdminCreateMicroController(c *gin.Context) {
 	}
 
 
-	if err := db.Debug().Exec(" INSERT INTO `microcontrollers` (`name`,`token`,`domain`,`port`. `number_of_pins`) " +
+	if err := db.Debug().Exec(" INSERT INTO `microcontrollers` (`name`,`token`,`domain`,`port`, `number_of_pins`) " +
 		"VALUES (?,?,?,?,?)", controller.Name, controller.Token, controller.Domain, controller.Port, controller.NumOfPins); err != nil {
 		log.Println(err)
 		return
