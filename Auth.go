@@ -134,7 +134,7 @@ func resetPassword(c *gin.Context){
 
 	log.Println(user)
 
-	if(user.email != pwd.Email){
+	if(user.Email != pwd.Email){
 		throwStatusBadRequest("ERR_USER_VALIDATION", c)
 		return
 	}
@@ -153,7 +153,7 @@ func resetPassword(c *gin.Context){
 		return
 	}
 
-	user.Token = tokenString
+	user.LoginToken = tokenString
 
 	throwStatusOk(user, c)
 	return
