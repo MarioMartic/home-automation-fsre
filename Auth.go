@@ -145,7 +145,7 @@ func updateUserFields(c *gin.Context){
 		return
 	}
 
-	if err := db.Exec("UPDATE users SET email = ?, full_name = ? WHERE id = ?", updateUserCreds.NewEmail, updateUserCreds.FullName).Error; err != nil {
+	if err := db.Exec("UPDATE users SET email = ?, full_name = ? WHERE id = ?", updateUserCreds.NewEmail, updateUserCreds.FullName, user.Email).Error; err != nil {
 		log.Println(err)
 		throwStatusInternalServerError("DB_ERR", c)
 		return
