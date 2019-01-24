@@ -29,6 +29,7 @@ type MicroControllerWithUID struct {
 	Domain string `json:"domain"`
 	Port   int    `json:"port"`
 	UserID int    `json:"user_id"`
+	NumOfPins int `json:"number_of_pins"`
 }
 
 func AdminDeleteUser(c *gin.Context) {
