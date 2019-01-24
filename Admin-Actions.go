@@ -69,7 +69,11 @@ func AdminCreateAction(c *gin.Context) {
 	}
 
 	query := "SELECT * FROM actions WHERE controller_id = ? AND pin = ?"
-	count := db.Debug().Raw(query).RowsAffected
+	//count := db.Debug().Exec(query, action.ControllerID, action.Pin).RowsAffected
+
+	var actions []Action
+
+	count := db.Debug().Raw(query, action.ControllerID, action.Pin).Scan(&actions).RowsAffected
 
 	if count != 0 {
 		throwStatusBadRequest("ERR_PIN_DUPLICATION", c)
