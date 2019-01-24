@@ -30,8 +30,8 @@ func main() {
 
 	/*
 	router.Use(func(c *gin.Context) {
-			// Run this on all requests   
-			// Should be moved to a proper middleware 
+			// Run this on all requests
+			// Should be moved to a proper middleware
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,Token")
 	c.Next()
@@ -41,11 +41,12 @@ func main() {
 		// Empty 200 response
 	}) */
 
-	
+
 	router.POST("/keep-alive", keepAliveHandler)
 
 	router.POST("/signin", SignIn)
 	router.POST("/signup", SignUp)
+	router.POST("/reset-password", resetPassword)
 	router.POST("/invite", addPrivilegesToUser)
 	router.GET("/user/connected", getConnectedUsers)
 	router.POST("/user/delete", deletePrivilegesToUser)
