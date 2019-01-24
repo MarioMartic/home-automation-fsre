@@ -70,7 +70,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	user.UUID = generateToken(16)
+	user.UUID = generateToken(4)
 	user.Password = string(hashedPassword)
 
 	if err = db.Save(user).Error; err != nil {
