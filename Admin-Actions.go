@@ -54,12 +54,12 @@ func AdminUpdateAction(c *gin.Context) {
 		return
 	}
 	query := "SELECT * FROM actions WHERE controller_id = ? AND pin = ?"
-	var actions []Action	
+	var actions []Action
 	count := db.Debug().Raw(query, action.ControllerID, action.Pin).Scan(&actions).RowsAffected
 	if count != 0 {
 		throwStatusBadRequest("ERR_PIN_DUPLICATION", c)
 		return
-	} 
+	}
 	if err := db.Debug().Save(&action).Error; err != nil {
 		log.Println(err)
 		throwStatusInternalServerError(err.Error(), c)
@@ -75,6 +75,12 @@ func AdminCreateAction(c *gin.Context) {
 		return
 	}
 
+	validationErrors := action.validate()
+	if len(validationErrors) > 0 {
+		c.JSON(http.StatusBadRequest, validationErrors)
+		return
+	}
+
 	query := "SELECT * FROM actions WHERE controller_id = ? AND pin = ?"
 	var actions []Action
 
@@ -82,12 +88,6 @@ func AdminCreateAction(c *gin.Context) {
 
 	if count != 0 {
 		throwStatusBadRequest("ERR_PIN_DUPLICATION", c)
-		return
-	}
-
-	validationErrors := action.validate()
-	if len(validationErrors) > 0 {
-		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 
@@ -133,8 +133,8 @@ func (a *Action) validate() url.Values {
 		errs.Add("controller_id", "Controller ID is required!")
 	}
 
-	if a.Pin == 0 {
-		errs.Add("pin", "Pin number is required!")
+	if a.Pin == 0 || a.Pin < 2 || a.Pin > 13 {
+		errs.Add("pin", "Invalid pin number!")
 	}
 
 	if a.Name == ""  {

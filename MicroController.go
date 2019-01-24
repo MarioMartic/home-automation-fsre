@@ -14,6 +14,7 @@ type MicroController struct {
 	Token  string `json:"token"`
 	Domain string `json:"domain"`
 	Port   int    `json:"port"`
+	NumOfPins int `json:"number_of_pins`
 }
 
 func (MicroController) TableName() string {
@@ -73,6 +74,15 @@ func AdminUpdateMicroControllerByID(c *gin.Context) {
 	validationErrors := microcontroller.validate()
 	if len(validationErrors) > 0 {
 		c.JSON(http.StatusBadRequest, validationErrors)
+		return
+	}
+
+	query := "SELECT * FROM microcontrollers WHERE domain = ? AND port = ? AND id != ?"
+
+	count := db.Raw(query, microcontroller.Domain, microcontroller.Port, microcontroller.ID).RowsAffected
+
+	if count != 0 {
+		throwStatusBadRequest("ERR_DOMAIN_PORT_DUPLICATION", c)
 		return
 	}
 
@@ -155,6 +165,10 @@ func (m *MicroController) validate() url.Values {
 		errs.Add("name", "Name is required!")
 	}
 
+	if m.NumOfPins != 13 {
+		errs.Add("number_of_pins", "Invalid number of pins")
+	}
+
 	return errs
 }
 
@@ -222,4 +236,3 @@ func unbindUserWithController(c *gin.Context) {
 	throwStatusOk("OK", c)
 
 }
-
