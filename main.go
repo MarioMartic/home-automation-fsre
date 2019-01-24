@@ -28,20 +28,6 @@ func main() {
 
 	router.Use(cors.New(config))
 
-	/*
-	router.Use(func(c *gin.Context) {
-			// Run this on all requests
-			// Should be moved to a proper middleware
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,Token")
-	c.Next()
-	})
-
-	router.OPTIONS("/*cors", func(c *gin.Context) {
-		// Empty 200 response
-	}) */
-
-
 	router.POST("/keep-alive", keepAliveHandler)
 
 	router.POST("/signin", SignIn)
@@ -57,7 +43,6 @@ func main() {
 
 	router.GET("/log")
 
-	router.GET("/state", getStates)
 	router.GET("/state/:id", getStateById)
 
 	logsApi := router.Group("/log")
@@ -125,48 +110,29 @@ func keepAliveHandler(c *gin.Context){
 }
 
 func keepAlive(t time.Time) {
-	apiUrl := "http://epcez.myddns.rocks:3000"
-	fmt.Println("URL:>", apiUrl)
 
-	data := url.Values{}
+	var microcontrollers []MicroController
+	if err := db.Raw("SELECT * FROM microcontrollers").Scan(&microcontrollers).Error; err != nil {
+		return
+	}
 
-	client := &http.Client{}
-	r, _ := http.NewRequest("POST", apiUrl, strings.NewReader(data.Encode())) // URL-encoded payload
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	for _, controller := range microcontrollers {
+		apiUrl := "http://" + controller.Domain + ":" + strconv.Itoa(controller.Port)
+		fmt.Println("URL:>", apiUrl)
 
-	resp, _ := client.Do(r)
-	fmt.Println(resp)
+		data := url.Values{}
 
+		client := &http.Client{}
+		r, _ := http.NewRequest("POST", apiUrl, strings.NewReader(data.Encode())) // URL-encoded payload
+		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+
+		client.Do(r)
+	}
 }
 
 func doEvery(d time.Duration, f func(time.Time)) {
 	for x := range time.Tick(d) {
 		f(x)
 	}
-}
-
-func action(c *gin.Context) {
-	apiUrl := ARDUINO_ADDRESS
-	fmt.Println("URL:>", apiUrl)
-
-	data := url.Values{}
-	data.Set("led_4", "1")
-
-
-	client := &http.Client{}
-	r, _ := http.NewRequest("POST", apiUrl, strings.NewReader(data.Encode())) // URL-encoded payload
-	r.Header.Add("Authorization", "059b9576-89ea-468e-81fb-564d1331055c")
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-
-	resp, _ := client.Do(r)
-	fmt.Println(resp.Status)
-
-	c.JSON(200, gin.H{
-		"status": resp.Status,
-	})
-
-	return
-
 }
