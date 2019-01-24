@@ -76,10 +76,10 @@ func AdminUpdateMicroControllerByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
-	var c []MicroController
+	var mc []MicroController
 	query := "SELECT * FROM microcontrollers WHERE domain = ? AND port = ? AND id != ?"
 
-	count := db.Raw(query, microcontroller.Domain, microcontroller.Port, microcontroller.ID).Scan(&c).RowsAffected
+	count := db.Debug().Raw(query, microcontroller.Domain, microcontroller.Port, microcontroller.ID).Scan(&mc).RowsAffected
 
 	if count != 0 {
 		throwStatusBadRequest("ERR_DOMAIN_PORT_DUPLICATION", c)
@@ -122,7 +122,8 @@ func AdminCreateMicroController(c *gin.Context) {
 		return
 	}
 
-	count := db.Debug().Raw("SELECT * FROM microcontrollers WHERE domain = ? AND port = ?", controller.Domain, controller.Port).RowsAffected
+	var mc []MicroController
+	count := db.Debug().Raw("SELECT * FROM microcontrollers WHERE domain = ? AND port = ?", controller.Domain, controller.Port).Scan(&mc).RowsAffected
 
 	if count != 0 {
 		throwStatusBadRequest("ERR_DOMAIN_PORT_DUPLICATION", c)
@@ -136,7 +137,7 @@ func AdminCreateMicroController(c *gin.Context) {
 	}
 
 
-	if err := db.Debug().Exec(" INSERT INTO `microcontrollers` (`name`,`token`,`domain`,`port`,`number_of_pins`) " +
+	if err := db.Debug().Exec("INSERT INTO `microcontrollers` (`name`,`token`,`domain`,`port`,`number_of_pins`) " +
 		"VALUES (?,?,?,?,?)", controller.Name, controller.Token, controller.Domain, controller.Port, controller.NumOfPins).Error; err != nil {
 			throwStatusBadRequest(err.Error(), c)
 		log.Println(err)
