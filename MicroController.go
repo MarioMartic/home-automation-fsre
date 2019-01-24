@@ -14,7 +14,7 @@ type MicroController struct {
 	Token  string `json:"token"`
 	Domain string `json:"domain"`
 	Port   int    `json:"port"`
-	NumOfPins int `json:"number_of_pins`
+	NumOfPins int `json:"number_of_pins"`
 }
 
 func (MicroController) TableName() string {
