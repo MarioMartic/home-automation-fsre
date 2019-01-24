@@ -47,6 +47,7 @@ func main() {
 	router.POST("/signin", SignIn)
 	router.POST("/signup", SignUp)
 	router.POST("/reset-password", resetPassword)
+	router.POST("/update", updateUserFields)
 	router.POST("/invite", addPrivilegesToUser)
 	router.GET("/user/connected", getConnectedUsers)
 	router.POST("/user/delete", deletePrivilegesToUser)

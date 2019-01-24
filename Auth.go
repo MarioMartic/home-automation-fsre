@@ -47,6 +47,12 @@ type PasswordChange struct {
 	NewPassword string `json:"new_password"`
 }
 
+type UpdateUsersCreds struct {
+	OldEmail string `json:"old_email"`
+	NewEmail string `json:"new_email"`
+	FullName string `json:"full_name"`
+}
+
 type UUID struct {
 	Text string `json:"uuid"`
 }
@@ -116,6 +122,41 @@ func SignIn(c *gin.Context) {
 	return
 }
 
+func updateUserFields(c *gin.Context){
+	var updateUserCreds UpdateUserCreds
+
+	if bindErr := c.BindJSON(&updateUserCreds); bindErr != nil {
+		log.Println(bindErr)
+		throwStatusBadRequest(bindErr.Error(), c)
+		return
+	}
+
+	user, err := getUserFromToken(getTokenFromRequest(c))
+	if err != nil {
+		log.Println(err)
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	log.Println(user)
+
+	if(user.Email != updateUserCreds.OldEmail){
+		throwStatusBadRequest("ERR_USER_VALIDATION", c)
+		return
+	}
+
+	if err := db.Exec("UPDATE users SET email = ?, full_name = ? WHERE id = ?", updateUserCreds.NewEmail, updateUserCreds.FullName).Error; err != nil {
+		log.Println(err)
+		throwStatusInternalServerError("DB_ERR", c)
+		return
+	}
+
+	user.Password = ""
+
+	throwStatusOk(user, c)
+	return
+}
+
 func resetPassword(c *gin.Context){
 	var pwd PasswordChange
 
@@ -141,7 +182,7 @@ func resetPassword(c *gin.Context){
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd.OldPassword)); err != nil {
 		log.Println(err.Error(), "userpasvord")
-		throwStatusUnauthorized(c)
+		throwStatusBadRequest("Invalid old password", c)
 		return
 	}
 
@@ -152,7 +193,7 @@ func resetPassword(c *gin.Context){
 		throwStatusInternalServerError("DB_ERR", c)
 		return
 	}
-
+	user.Password = ""
 	user.LoginToken = tokenString
 
 	throwStatusOk(user, c)
