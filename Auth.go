@@ -123,7 +123,7 @@ func SignIn(c *gin.Context) {
 }
 
 func updateUserFields(c *gin.Context){
-	var updateUserCreds UpdateUserCreds
+	var updateUserCreds UpdateUsersCreds
 
 	if bindErr := c.BindJSON(&updateUserCreds); bindErr != nil {
 		log.Println(bindErr)
