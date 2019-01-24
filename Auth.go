@@ -41,6 +41,12 @@ type Credentials struct {
 	Password string `json:"password", db:"password"`
 }
 
+type PasswordChange struct {
+	Email string `json:"email"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
 type UUID struct {
 	Text string `json:"uuid"`
 }
@@ -104,6 +110,49 @@ func SignIn(c *gin.Context) {
 	}
 
 	user.Password = ""
+	user.Token = tokenString
+
+	throwStatusOk(user, c)
+	return
+}
+
+func resetPassword(c *gin.Context){
+	var pwd PasswordChange
+
+	if bindErr := c.BindJSON(&pwd); bindErr != nil {
+		log.Println(bindErr)
+		throwStatusBadRequest(bindErr.Error(), c)
+		return
+	}
+
+	user, err := getUserFromToken(getTokenFromRequest(c))
+	if err != nil {
+		log.Println(err)
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	log.Println(user)
+
+	if(user.email != pwd.Email){
+		throwStatusBadRequest("ERR_USER_VALIDATION", c)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd.OldPassword)); err != nil {
+		log.Println(err.Error(), "userpasvord")
+		throwStatusUnauthorized(c)
+		return
+	}
+
+	tokenString := generateToken(64)
+
+	if err := db.Exec("UPDATE users SET password = ?, login_token = ? WHERE id = ?", pwd.NewPassword, tokenString, user.ID).Error; err != nil {
+		log.Println(err)
+		throwStatusInternalServerError("DB_ERR", c)
+		return
+	}
+
 	user.Token = tokenString
 
 	throwStatusOk(user, c)
@@ -289,4 +338,3 @@ func AdminSignIn(c *gin.Context) {
 	throwStatusOk(admin, c)
 	return
 }
-
