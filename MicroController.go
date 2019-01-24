@@ -122,10 +122,10 @@ func AdminCreateMicroController(c *gin.Context) {
 		return
 	}
 
-	count := db.Raw("SELECT * FROM microcontrollers WHERE domain = ? AND port = ?", controller.Domain, controller.Port).RowsAffected
+	count := db.Debug().Raw("SELECT * FROM microcontrollers WHERE domain = ? AND port = ?", controller.Domain, controller.Port).RowsAffected
 
 	if count != 0 {
-		throwStatusBadRequest("Controller already exists", c)
+		throwStatusBadRequest("ERR_DOMAIN_PORT_DUPLICATION", c)
 		return
 	}
 
