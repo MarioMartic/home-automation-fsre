@@ -151,7 +151,8 @@ func updateUserFields(c *gin.Context){
 		return
 	}
 
-	user.new
+	user.Email = updateUserCreds.NewEmail
+	user.FullName = updateUserCreds.FullName
 	user.Password = ""
 
 	throwStatusOk(user, c)
