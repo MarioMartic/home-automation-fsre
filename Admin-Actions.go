@@ -54,12 +54,17 @@ func AdminUpdateAction(c *gin.Context) {
 		return
 	}
 	query := "SELECT * FROM actions WHERE controller_id = ? AND pin = ?"
+
 	var actions []Action
+
 	count := db.Debug().Raw(query, action.ControllerID, action.Pin).Scan(&actions).RowsAffected
-	if count != 0 {
-		throwStatusBadRequest("ERR_PIN_DUPLICATION", c)
-		return
+	for _,act := range actions {
+		if act.ID != action.ID && count != 0 {
+				throwStatusBadRequest("ERR_PIN_DUPLICATION", c)
+				return
+		}
 	}
+
 	if err := db.Debug().Save(&action).Error; err != nil {
 		log.Println(err)
 		throwStatusInternalServerError(err.Error(), c)
